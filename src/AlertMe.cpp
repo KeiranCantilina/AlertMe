@@ -20,12 +20,16 @@ WiFiManagerParameter our_email("email", "smtp email", "", 40);
 WiFiManagerParameter custom_text_password("<br><br>What is your email password?<br>(doepass123)");
 WiFiManagerParameter our_password("password", "smtp password", "", 40);
 
+WiFiManagerParameter custom_text_recipient("<br><br>What is the desired recipient email address?<br>(eg. alarmrecipient@gmail.com)");
+WiFiManagerParameter our_recipient("recipient", "recipient email", "", 40);
+
 const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                     "abcdefghijklmnopqrstuvwxyz"
                                     "0123456789+/";
 
 char EMAIL_LOGIN[40];
 char EMAIL_PASSWORD[40];
+char RECIPIENT[40];
 uint16_t smtp_port = 0;
 char smtp_server[40];
 bool needs_save = false;
@@ -337,6 +341,7 @@ void load_settings() {
           strcpy(smtp_server, json["smtp_server"]);
           strcpy(EMAIL_LOGIN, json["smtp_email"]);
           strcpy(EMAIL_PASSWORD, json["smtp_password"]);
+          strcpy(RECIPIENT,json["recipient_email"]);
 
         } else {
           DEBUG_AM("Failed to load json config!");
@@ -358,6 +363,7 @@ void save_settings(){
     json["smtp_port"] = smtp_port;
     json["smtp_email"] = EMAIL_LOGIN;
     json["smtp_password"] = EMAIL_PASSWORD;
+    json["recipient_email"] = RECIPIENT;
 
     File configFile = SPIFFS.open("/alertme_config.json", "w");
     if (!configFile) {
@@ -400,6 +406,9 @@ void AlertMe::conn_network(bool retry) {
 
   wifiManager.addParameter(&custom_text_password);
   wifiManager.addParameter(&our_password);
+	
+  wifiManager.addParameter(&custom_text_recipient);
+  wifiManager.addParameter(&our_recipient);
 
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setAPCallback(configModeCallback);
@@ -425,6 +434,7 @@ void AlertMe::conn_network(bool retry) {
     strcpy(smtp_server, our_smtp_server.getValue());
     strcpy(EMAIL_LOGIN, our_email.getValue());
     strcpy(EMAIL_PASSWORD, our_password.getValue());
+    strcpy(RECIPIENT, our_recipient.getValue());
 	
 	save_settings();
 	
@@ -436,6 +446,8 @@ void AlertMe::conn_network(bool retry) {
 	DEBUG_AM(EMAIL_LOGIN);
 	DEBUG_AM("NEW PASSWORD");
 	DEBUG_AM(EMAIL_PASSWORD);
+	DEBUG_AM("NEW RECIPIENT");
+	DEBUG_AM(RECIPIENT);
 	
     conn_network(true);
   }
@@ -444,7 +456,8 @@ void AlertMe::conn_network(bool retry) {
 const char* AlertMe::send(String subject, String message, String dest) {
 
   DEBUG_AM("Sending message to ");
-  DEBUG_AM(dest);
+  //DEBUG_AM(dest);
+  DEBUG_AM(RECIPIENT);
   DEBUG_AM(':');
   DEBUG_AM("SUBJECT: ");
   DEBUG_AM(subject);
@@ -452,7 +465,7 @@ const char* AlertMe::send(String subject, String message, String dest) {
   DEBUG_AM(message);
 
   Gsender *gsender = Gsender::Instance();
-  if (gsender->Subject(subject)->Send(dest, message) == true) {
+  if (gsender->Subject(subject)->Send(RECIPIENT/*dest*/, message) == true) {
 
     DEBUG_AM("Message sent successfully.");
 
