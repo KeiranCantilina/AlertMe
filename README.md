@@ -1,4 +1,6 @@
-This fork of AlertMe has been modified to add a Configuration Portal timeout.
+This fork of AlertMe has been modified to add a Configuration Portal timeout, along with a message recipient configurable by the user through the Configuration Portal.
+
+
 
 ![#AlertMe Library](https://i.imgur.com/TiQ5zEf.jpg)
 
