@@ -1,6 +1,7 @@
 /*
 	AlertMe.cpp - Library for sending emails and SMS from the ESP8266!
 	Created by Connor Nishijima, October 14th 2017.
+	Modified by Keiran Cantilina, July 26, 2021.
 	Released under the GPLv3 license.
 */
 
