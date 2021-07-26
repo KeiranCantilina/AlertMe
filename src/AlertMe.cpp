@@ -7,7 +7,7 @@
 #include "AlertMe.h"
 
 WiFiManager wifiManager;
-wifiManager.setConfigPortalTimeout(300);
+
 WiFiManagerParameter custom_text_port("<br>What is the SMTP port? (Gmail = 465)");
 WiFiManagerParameter our_smtp_port("port", "smtp port", "465", 5);
 
@@ -412,7 +412,8 @@ void AlertMe::conn_network(bool retry) {
 
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setAPCallback(configModeCallback);
-  
+  wifiManager.setConfigPortalTimeout(300);
+	
   if (!retry) {
 	DEBUG_AM("Connecting to your WiFi network...");	
     wifiManager.autoConnect("AlertMe Configuration");
@@ -487,6 +488,7 @@ void AlertMe::debug(bool enabled){
 }
 
 void AlertMe::config(){
+	wifiManager.setConfigPortalTimeout(300);
 	wifiManager.startConfigPortal("ALERTME_CONFIG");
 }
 
