@@ -8,20 +8,20 @@
 
 WiFiManager wifiManager;
 
-WiFiManagerParameter custom_text_port("<br>What is the SMTP port? (Gmail = 465)");
-WiFiManagerParameter our_smtp_port("port", "smtp port", "465", 5);
+WiFiManagerParameter custom_text_port("<br>What is the SMTP port number? (eg. for Gmail: 465)");
+WiFiManagerParameter our_smtp_port("port", "", "465", 5);
 
-WiFiManagerParameter custom_text_server("<br><br>What is the SMTP server?<br>(Gmail = smtp.gmail.com)");
-WiFiManagerParameter our_smtp_server("server", "smtp server", "smtp.gmail.com", 40);
+WiFiManagerParameter custom_text_server("<br><br>What is the SMTP server?<br>(eg. smtp.gmail.com)");
+WiFiManagerParameter our_smtp_server("server", "", "smtp.gmail.com", 40);
 
-WiFiManagerParameter custom_text_email("<br><br>What is your email address?<br>(johndoe@gmail.com)");
-WiFiManagerParameter our_email("email", "smtp email", "", 40);
+WiFiManagerParameter custom_text_email("<br><br>What is the host email address?<br>(eg. johndoe@gmail.com)");
+WiFiManagerParameter our_email("email", "", "", 40);
 
-WiFiManagerParameter custom_text_password("<br><br>What is your email password?<br>(doepass123)");
-WiFiManagerParameter our_password("password", "smtp password", "", 40);
+WiFiManagerParameter custom_text_password("<br><br>What is the host email password?<br>(eg. doepass123)");
+WiFiManagerParameter our_password("password", "", "", 40);
 
 WiFiManagerParameter custom_text_recipient("<br><br>What is the desired recipient email address?<br>(eg. alarmrecipient@gmail.com)");
-WiFiManagerParameter our_recipient("recipient", "recipient email", "", 40);
+WiFiManagerParameter our_recipient("recipient", "", "", 40);
 
 const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                     "abcdefghijklmnopqrstuvwxyz"
@@ -416,7 +416,7 @@ void AlertMe::conn_network(bool retry) {
 	
   if (!retry) {
 	DEBUG_AM("Connecting to your WiFi network...");	
-    wifiManager.autoConnect("AlertMe Configuration");
+    wifiManager.autoConnect("LNAlert Configuration");
 	if(needs_save){
 		needs_save = false;
 		save_settings();
@@ -428,7 +428,7 @@ void AlertMe::conn_network(bool retry) {
 
   if (gsender->TestConnection(smtp_server, smtp_port) == false) {
 	stmp_connect_fail = true;
-    wifiManager.startConfigPortal("AlertMe Configuration");	
+    wifiManager.startConfigPortal("LNAlert Configuration");	
 	DEBUG_AM("Retrying connections with new info...");
 	
 	smtp_port = atoi(our_smtp_port.getValue());
