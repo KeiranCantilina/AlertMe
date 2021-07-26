@@ -7,6 +7,7 @@
 #include "AlertMe.h"
 
 WiFiManager wifiManager;
+wifiManager.setConfigPortalTimeout(300);
 WiFiManagerParameter custom_text_port("<br>What is the SMTP port? (Gmail = 465)");
 WiFiManagerParameter our_smtp_port("port", "smtp port", "465", 5);
 
