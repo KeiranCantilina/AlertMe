@@ -453,7 +453,7 @@ void AlertMe::conn_network(bool retry) {
   }
 }
 
-const char* AlertMe::send(String subject, String message, String dest) {
+const char* AlertMe::send(String subject, String message/*, String dest*/) {
 
   DEBUG_AM("Sending message to ");
   //DEBUG_AM(dest);
