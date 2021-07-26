@@ -140,7 +140,7 @@ Allows you to call up the config hotspot at all, a good practice would be adding
         alert.config();
     }
 
-void **alert.reset**(bool **format** == false);
+void **alert.reset**(false);
 
 Used to reset WiFi configuration, and delete saved SMTP credentials from the ESP8266. Good for if you're giving this microcontroller to someone else!
 
