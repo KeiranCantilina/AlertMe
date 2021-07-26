@@ -1,3 +1,5 @@
+This fork of AlertMe has been modified to add a Configuration Portal timeout.
+
 ![#AlertMe Library](https://i.imgur.com/TiQ5zEf.jpg)
 
 **Did you know your ESP8266 could send Email and SMS without any special hardware or paid services like Twilio?**
