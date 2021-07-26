@@ -20,7 +20,7 @@ class AlertMe{
 	public:
 		AlertMe();
 		void connect(bool debug_wifi = false);
-		const char* send(String subject, String message, String dest);
+		const char* send(String subject, String message/*, String dest*/);
 		const char* get_error();
 		void debug(bool enabled);
 		void config();
