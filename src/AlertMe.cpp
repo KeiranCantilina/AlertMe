@@ -385,10 +385,10 @@ void saveConfigCallback () {
 
 void configModeCallback (WiFiManager *myWiFiManager) {
 	if(stmp_connect_fail){
-		Serial.print("Failed to connect to SMTP, config AP active at: '");
+		Serial.print("Failed to connect to SMTP server; config AP active with SSID: '");
 	}
 	else{
-		Serial.print("\nFailed to connect to WiFi, config AP active at: '");
+		Serial.print("\nFailed to connect to WiFi; config AP active with SSID: '");
 	}
 	Serial.print(myWiFiManager->getConfigPortalSSID());
 	Serial.println("'");
