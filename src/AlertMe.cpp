@@ -188,6 +188,7 @@ const char* Gsender::getError()
 bool Gsender::Send(const String &to, const String &message)
 {
   WiFiClientSecure client;
+  client.setInsecure();
   DEBUG_AM("Connecting to :");
   DEBUG_AM(smtp_server);
   if (!client.connect(smtp_server, smtp_port)) {
@@ -269,6 +270,7 @@ bool Gsender::Send(const String &to, const String &message)
 
 bool Gsender::TestConnection(char* server, uint16_t port) {
   WiFiClientSecure client;
+  client.setInsecure();
   DEBUG_AM("Connecting to :");
   DEBUG_AM(server);
   if (!client.connect(server, port)) {
