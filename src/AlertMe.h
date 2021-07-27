@@ -19,14 +19,14 @@
 class AlertMe{
 	public:
 		AlertMe();
-		void connect(bool debug_wifi = false);
+		bool connect(bool debug_wifi = false);
 		const char* send(String subject, String message/*, String dest*/);
 		const char* get_error();
 		void debug(bool enabled);
-		void config();
+		bool config();
 		void reset(bool format = false);
 	private:
-		void conn_network(bool retry = false);
+		bool conn_network(bool retry = false);
 };
 
 #endif

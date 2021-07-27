@@ -7,27 +7,6 @@
 
 #include "AlertMe.h"
 
-WiFiManager wifiManager;
-
-WiFiManagerParameter custom_text_port("<br>What is the SMTP port number? (eg. for Gmail: 465)");
-WiFiManagerParameter our_smtp_port("port", "", "465", 5);
-
-WiFiManagerParameter custom_text_server("<br><br>What is the SMTP server?<br>(eg. smtp.gmail.com)");
-WiFiManagerParameter our_smtp_server("server", "", "smtp.gmail.com", 40);
-
-WiFiManagerParameter custom_text_email("<br><br>What is the host email address?<br>(eg. johndoe@gmail.com)");
-WiFiManagerParameter our_email("email", "", "", 40);
-
-WiFiManagerParameter custom_text_password("<br><br>What is the host email password?<br>(eg. doepass123)");
-WiFiManagerParameter our_password("password", "", "", 40);
-
-WiFiManagerParameter custom_text_recipient("<br><br>What is the desired recipient email address?<br>(eg. alarmrecipient@gmail.com)");
-WiFiManagerParameter our_recipient("recipient", "", "", 40);
-
-const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                    "abcdefghijklmnopqrstuvwxyz"
-                                    "0123456789+/";
-
 char EMAIL_LOGIN[40];
 char EMAIL_PASSWORD[40];
 char RECIPIENT[40];
@@ -38,6 +17,32 @@ bool alert_debug = false;
 char* last_error = "";
 
 bool stmp_connect_fail = false;
+bool portal_timeout = false; // false means timed out, true means not timed out
+
+
+
+WiFiManager wifiManager;
+
+WiFiManagerParameter custom_text_port("<br>What is the SMTP port number? (eg. for Gmail: 465)");
+WiFiManagerParameter our_smtp_port("port", "", "465", 5);
+
+WiFiManagerParameter custom_text_server("<br><br>What is the SMTP server?<br>(eg. smtp.gmail.com)");
+WiFiManagerParameter our_smtp_server("server", "", "smtp.gmail.com", 40);
+
+WiFiManagerParameter custom_text_email("<br><br>What is the host email address?<br>(eg. johndoe@gmail.com)");
+WiFiManagerParameter our_email("email", "", EMAIL_LOGIN, 40);
+
+WiFiManagerParameter custom_text_password("<br><br>What is the host email password?<br>(eg. doepass123)");
+WiFiManagerParameter our_password("password", "", EMAIL_PASSWORD, 40);
+
+WiFiManagerParameter custom_text_recipient("<br><br>What is the desired recipient email address?<br>(eg. alarmrecipient@gmail.com)");
+WiFiManagerParameter our_recipient("recipient", "", RECIPIENT, 40);
+
+const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                    "abcdefghijklmnopqrstuvwxyz"
+                                    "0123456789+/";
+
+
 
 template <typename Generic>
 void DEBUG_AM(Generic text) {
@@ -397,7 +402,7 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 	stmp_connect_fail = false;
 }
 
-void AlertMe::conn_network(bool retry) {
+bool AlertMe::conn_network(bool retry) {
   wifiManager.addParameter(&custom_text_port);
   wifiManager.addParameter(&our_smtp_port);
 
@@ -415,11 +420,13 @@ void AlertMe::conn_network(bool retry) {
 
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setConfigPortalTimeout(300);
+  wifiManager.setConfigPortalTimeout(180);
 	
   if (!retry) {
 	DEBUG_AM("Connecting to your WiFi network...");	
-    wifiManager.autoConnect("LNAlert Configuration");
+    if(!wifiManager.autoConnect("LNAlert Configuration")){ // if connection fails due to timeout, reboot
+		return false;
+	}
 	if(needs_save){
 		needs_save = false;
 		save_settings();
@@ -431,7 +438,16 @@ void AlertMe::conn_network(bool retry) {
 
   if (gsender->TestConnection(smtp_server, smtp_port) == false) {
 	stmp_connect_fail = true;
-    wifiManager.startConfigPortal("LNAlert Configuration");	
+    portal_timeout = wifiManager.startConfigPortal("LNAlert Configuration");
+	DEBUG_AM("---------------------------------------------------------------PORTAL TIMEOUT STATUS: ");
+    if (portal_timeout == true){
+		DEBUG_AM("TRUE"); // portal did not time out
+	}
+	else{
+		DEBUG_AM("FALSE"); // Portal timed out. Reset!
+		return false;
+	}
+	
 	DEBUG_AM("Retrying connections with new info...");
 	
 	smtp_port = atoi(our_smtp_port.getValue());
@@ -453,8 +469,9 @@ void AlertMe::conn_network(bool retry) {
 	DEBUG_AM("NEW RECIPIENT");
 	DEBUG_AM(RECIPIENT);
 	
-    conn_network(true);
+    return(conn_network(true));
   }
+  return true;
 }
 
 const char* AlertMe::send(String subject, String message/*, String dest*/) {
@@ -490,9 +507,12 @@ void AlertMe::debug(bool enabled){
 	alert_debug = enabled;
 }
 
-void AlertMe::config(){
-	wifiManager.setConfigPortalTimeout(300);
-	wifiManager.startConfigPortal("ALERTME_CONFIG");
+bool AlertMe::config(){
+	wifiManager.setConfigPortalTimeout(180);
+	if(!wifiManager.startConfigPortal("LNAlert Configuration")){
+		return false;
+	}
+	return true;
 }
 
 void AlertMe::reset(bool format){
@@ -502,7 +522,7 @@ void AlertMe::reset(bool format){
 	wifiManager.resetSettings();
 }
 
-void AlertMe::connect(bool debug_wifi) {
+bool AlertMe::connect(bool debug_wifi) {
 	DEBUG_AM("Mounting SPIFFS...");
 	if (SPIFFS.begin()) {
 		DEBUG_AM("Mounted file system.");
@@ -512,7 +532,10 @@ void AlertMe::connect(bool debug_wifi) {
 	}
 	wifiManager.setDebugOutput(debug_wifi);
 	load_settings();
-	conn_network();
+	if(!conn_network()){
+		return false;
+	}
+	return true;
 }
 
 const char* AlertMe::get_error() {
