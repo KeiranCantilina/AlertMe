@@ -10,6 +10,10 @@
 char EMAIL_LOGIN[40];
 char EMAIL_PASSWORD[40];
 char RECIPIENT[40];
+//char null_terminator[1];
+//null_terminator[0] = '\0';
+//char auth_char[100];
+
 uint16_t smtp_port = 0;
 char smtp_server[40];
 bool needs_save = false;
@@ -65,7 +69,7 @@ inline void a3_to_a4(unsigned char * a4, unsigned char * a3) {
   a4[3] = (a3[2] & 0x3f);
 }
 
-int base64_encode(char *output, char *input, int inputLen) {
+int base64_encode(char *output, const char *input, int inputLen) {
   int i = 0, j = 0;
   int encLen = 0;
   unsigned char a3[3];
@@ -212,10 +216,11 @@ bool Gsender::Send(const String &to, const String &message)
     return false;
   }
 
-  DEBUG_AM("AUTH LOGIN:");
+// ---------------------------------------------------------- AUTH LOGIN
+  /*DEBUG_AM("AUTH LOGIN:");			// AUTH LOGIN
   client.println("AUTH LOGIN");
   AwaitSMTPResponse(client);
-
+  
   DEBUG_AM("EMAIL_LOGIN:");
   DEBUG_AM(EMAIL_LOGIN);
 
@@ -229,7 +234,42 @@ bool Gsender::Send(const String &to, const String &message)
   if (!AwaitSMTPResponse(client, "235")) {
     _error = "SMTP AUTH error";
     return false;
+  }*/
+// ---------------------------------------------------------------  AUTH PLAIN (added by Keiran Cantilina 28 July 2021)
+  DEBUG_AM("AUTH PLAIN:");		
+  client.println("AUTH PLAIN");
+  AwaitSMTPResponse(client);
+  
+  DEBUG_AM("EMAIL_LOGIN:");
+  DEBUG_AM(EMAIL_LOGIN);
+  
+  DEBUG_AM("EMAIL_PASSWORD:");
+  DEBUG_AM(EMAIL_PASSWORD);  
+
+
+  char* buf = (char*)malloc(100);
+  String Username = EMAIL_LOGIN;
+  String Password = EMAIL_PASSWORD;
+  char plainAuth[Username.length()+Password.length()+3];
+  plainAuth[0] = '\0';
+  strcpy(&plainAuth[1], Username.c_str());
+  strcpy(&plainAuth[2+Username.length()], Password.c_str());
+  const char* pA = (const char*)&plainAuth;
+  base64_encode(buf, pA, Username.length()+Password.length()+2);
+
+  DEBUG_AM("ENCODE64: ");
+  DEBUG_AM(buf);
+
+   
+   client.println(buf);
+   DEBUG_AM("--------------------------TRYING REAL HARD");
+   free(buf);
+
+  if (!AwaitSMTPResponse(client, "235")) {
+    _error = "SMTP AUTH error";
+    return false;
   }
+ // ------------------------------------------------------------------------------
 
   String mailFrom = "MAIL FROM: <" + String(EMAIL_LOGIN) + '>';
   DEBUG_AM(mailFrom);
@@ -294,6 +334,8 @@ bool Gsender::TestConnection(char* server, uint16_t port) {
     return false;
   }
 
+// ------------------------------------------------------- AUTH LOGIN
+/*
   DEBUG_AM("AUTH LOGIN:");
   client.println("AUTH LOGIN");
   AwaitSMTPResponse(client);
@@ -314,6 +356,42 @@ bool Gsender::TestConnection(char* server, uint16_t port) {
     _error = "SMTP AUTH error";
     return false;
   }
+*/
+// ---------------------------------------------------------------  AUTH PLAIN (added by Keiran Cantilina 28 July 2021)
+  DEBUG_AM("AUTH PLAIN:");		
+  client.println("AUTH PLAIN");
+  AwaitSMTPResponse(client);
+  
+  DEBUG_AM("EMAIL_LOGIN:");
+  DEBUG_AM(EMAIL_LOGIN);
+  
+  DEBUG_AM("EMAIL_PASSWORD:");
+  DEBUG_AM(EMAIL_PASSWORD);  
+
+  char* buf = (char*)malloc(100);
+  String Username = EMAIL_LOGIN;
+  String Password = EMAIL_PASSWORD;
+  char plainAuth[Username.length()+Password.length()+3];
+  plainAuth[0] = '\0';
+  strcpy(&plainAuth[1], Username.c_str());
+  strcpy(&plainAuth[2+Username.length()], Password.c_str());
+  const char* pA = (const char*)&plainAuth;
+  base64_encode(buf, pA, Username.length()+Password.length()+2);
+
+  DEBUG_AM("ENCODE64: ");
+  DEBUG_AM(buf);
+
+   
+   client.println(buf);
+   DEBUG_AM("--------------------------TRYING REAL HARD");
+   free(buf);
+ 
+  if (!AwaitSMTPResponse(client, "235")) {
+    _error = "SMTP AUTH error";
+    return false;
+  }
+
+ // ------------------------------------------------------------------------------
 
   return true;
 }
