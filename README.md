@@ -1,5 +1,5 @@
 This fork of AlertMe has been modified to add a Configuration Portal timeout, along with a message recipient configurable by the user through the Configuration Portal.
-
+In addition, the SMTP auth type has been changed to AUTH PLAIN. If using Gmail, set up an App Password and use that in place of the account password when configuring using the portal.
 
 
 ![#AlertMe Library](https://i.imgur.com/TiQ5zEf.jpg)
